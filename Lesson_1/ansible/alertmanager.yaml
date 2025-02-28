@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 3m
+
+route:
+  receiver: 'default'
+
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: 'ches.lorena@gmail.com'
+        from: 'ches.tranveksr@gmail.com'
+        smarthost: 'smtp.gmail.com:587'
+        auth_username: 'ches.tranveks'
+        auth_password: 'SamoLet24378!'
+        require_tls: true
