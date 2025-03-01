@@ -20,3 +20,6 @@
 # С помощью terraform создать машину для jenkins
 # С помощью ansible установить jenkins
 # Поднять свой secure docker registry
+#
+# -------------------------------------------
+# aws ec2 describe-subnets --query "Subnets[*].{ID:SubnetId,CIDR:CidrBlock}" --output table

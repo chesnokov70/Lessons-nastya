@@ -6,7 +6,7 @@ resource "aws_instance" "monitoring_docker" {
   key_name               = "ssh_instance_key" # Please use your key name
   iam_instance_profile = aws_iam_instance_profile.monitoring_profile_devops_course.name
   root_block_device {
-    volume_size = 40 # Adjust size based on needs, in GB
+    volume_size = 30 # Adjust size based on needs, in GB
     volume_type = "gp3"
   }
   tags = {
