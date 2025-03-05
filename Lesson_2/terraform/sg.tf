@@ -1,6 +1,6 @@
 resource "aws_security_group" "allow_web" {
   description = "web SG for monitoring docker"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id = aws_vpc.main_vpc.id
   dynamic "ingress" {
     for_each = var.allow_ports
     content {

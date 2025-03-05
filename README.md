@@ -23,3 +23,11 @@
 #
 # -------------------------------------------
 # aws ec2 describe-subnets --query "Subnets[*].{ID:SubnetId,CIDR:CidrBlock}" --output table
+#
+# terraform fmt
+# terraform validate
+# terraform apply -auto-approve
+#
+# terraform fmt
+# terraform validate
+# terraform apply -auto-approve

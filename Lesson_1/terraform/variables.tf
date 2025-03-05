@@ -35,6 +35,6 @@ variable "common_tags" {
     Owner       = "Sergei Ches"
     Project     = "Monitoring"
     CostCenter  = "12345"
-    Environment = "Monitoring"
+    Environment = "prod"
   }
 }
