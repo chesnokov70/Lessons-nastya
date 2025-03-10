@@ -1,0 +1,287 @@
+- name: Install and configure Node.js app with monitoring
+  hosts: all # node_app
+  become: true
+
+  vars:
+    ansible_user: ubuntu
+    docker_projects_dir: /home/deployer/node-app
+    prometheus_config: "{{ docker_projects_dir }}/prometheus.yml"
+ 
+  tasks:
+    # Docker and Docker Compose Installation Tasks
+    - name: Update package index
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install dependencies for Docker
+      apt:
+        name:
+          [
+            "apt-transport-https",
+            "ca-certificates",
+            "gnupg",
+            "software-properties-common", 
+            "curl", 
+            "git"
+          ]
+        state: present
+
+    - name: Import GPG key for Docker repository
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        id: 0EBFCD88
+
+    - name: Add source list for Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu jammy stable"
+        state: present
+
+    - name: Install Docker and Docker Compose
+      apt:
+        name:
+          - docker-ce
+          - docker-compose-plugin
+        state: present          
+
+    - name: Enable Docker service at boot
+      systemd:
+        name: docker
+        enabled: yes
+        state: started
+
+
+    - name: Add deployer user
+      user:
+        name: deployer
+        groups: docker
+        append: true
+        shell: /bin/bash
+
+    - name: Add ubuntu user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: true    
+
+    - name: Ensure /home/deployer has execute permissions
+      file:
+        path: /home/deployer
+        mode: '0755'
+      become: true
+
+
+    - name: Mark node-app directory as safe for git
+      command: git config --global --add safe.directory /home/deployer/node-app
+      become: true
+    
+
+    - name: Clone Node.js app repository using git module
+      git:
+        repo: https://github.com/AnastasiyaGapochkina01/node-app.git
+        dest: /home/deployer/node-app
+        clone: yes
+        update: yes
+        force: yes  # Ensures correct ownership
+      become: true
+
+
+    - name: Ensure deployer user is in the docker group
+      user:
+        name: deployer
+        groups: docker
+        append: yes
+      become: true    
+
+    - name: Change ownership of node-app directory
+      file:
+        path: "/home/deployer/node-app"
+        owner: deployer
+        group: deployer
+        recurse: yes    
+      become: true  
+
+    - name: Restart Docker service
+      systemd:
+        name: docker
+        state: restarted
+        enabled: yes
+
+    - name: Create Docker Compose file
+      copy:
+        dest: "/home/deployer/node-app/docker-compose.yml"
+        content: |
+          services:
+            app:
+              image: node:16
+              container_name: node-app
+              working_dir: /app
+              volumes:
+                - /home/deployer/node-app:/app
+              command: >
+                sh -c "npm install && node server.js"
+              ports:
+                - "3000:3000"
+
+            nginx:
+              image: nginx:latest
+              container_name: nginx-proxy
+              ports:
+                - "80:80"
+              volumes:
+                - "./nginx.conf:/etc/nginx/nginx.conf"
+
+            node-exporter:
+              image: prom/node-exporter
+              container_name: node-exporter
+              ports:
+                - "9100:9100"
+
+            cadvisor:
+              image: gcr.io/cadvisor/cadvisor
+              container_name: cadvisor
+              ports:
+                - "8080:8080"
+              volumes:
+                - "/var/run/docker.sock:/var/run/docker.sock:ro"
+                - "/sys:/sys:ro"
+                - "/var/lib/docker:/var/lib/docker:ro"
+
+            grafana:
+              image: grafana/grafana:main-ubuntu
+              container_name: grafana
+              ports:
+                - "3001:3000"
+              restart: always
+              networks:
+                - monitoring
+              environment:
+                - GF_SECURITY_ADMIN_PASSWORD=admin
+              volumes:
+                - grafana-data:/var/lib/grafana
+
+            prometheus:
+              image: prom/prometheus:latest
+              container_name: prometheus
+              volumes:
+                - prometheus-data:/prometheus
+              ports:
+                - "9090:9090"
+              restart: always
+              networks:
+                - monitoring
+          volumes:
+            prometheus-data:
+              driver: local
+            grafana-data:
+              driver: local              
+
+          networks:
+            monitoring:
+              driver: bridge
+
+    - name: Copy Nginx configuration
+      copy:
+        dest: "/home/deployer/node-app/nginx.conf"
+        content: |
+          events {}
+
+          http {
+            server {
+              listen 80;
+              location / {
+                proxy_pass http://node-app:3000;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+              }
+            }
+          }
+
+
+    - name: Remove old Prometheus container if exists
+      docker_container:
+        name: prometheus
+        state: absent
+      ignore_errors: true  # Ignore if the container doesn't exist
+
+    - name: Start services with Docker Compose 
+      command: docker compose up -d
+      args:
+        chdir: "/home/deployer/node-app"
+      become: true
+   #---------------------------------------------------
+
+    - name: Get node-exporter container IP
+      shell: "docker inspect -f '{{ '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' }}' node-exporter"
+      register: node_exporter_ip
+      changed_when: false
+
+    - name: Get cAdvisor container IP
+      shell: "docker inspect -f '{{ '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' }}' cadvisor"
+      register: cadvisor_ip
+      changed_when: false
+
+    - name: Debug output of container IPs
+      debug:
+        msg: "node-exporter IP: {{ node_exporter_ip.stdout }}, cAdvisor IP: {{ cadvisor_ip.stdout }}"
+
+    - name: Get public IP using Ansible facts
+      set_fact:
+        host_ip: "{{ ansible_default_ipv4.address }}"
+
+    - name: Generate Prometheus configuration file
+      copy:
+        dest: "{{ prometheus_config }}"
+        content: |
+          global:
+            scrape_interval: 30s
+
+          scrape_configs:
+            - job_name: 'node-exporter'
+              static_configs:
+                - targets: ['{{ host_ip }}:9100']
+
+            - job_name: 'cadvisor'
+              static_configs:
+                - targets: ['{{ host_ip }}:8080']
+
+    - name: Copy custom prometheus.yml to target machine
+      copy:
+        src: /home/deployer/node-app/prometheus.yml  # Path on your local machine or control node
+        dest: /tmp/prometheus.yml  # Temporary location on the target machine
+        remote_src: true
+        
+    - name: Stop Prometheus container if running
+      docker_container:
+        name: prometheus
+        state: stopped
+      ignore_errors: true  # Ignore if the container isn't running
+
+    - name: Remove old Prometheus container if exists
+      docker_container:
+        name: prometheus
+        state: absent
+      ignore_errors: true  # Ignore if the container doesn't exist
+
+    - name: Start Prometheus container with custom prometheus.yml
+      docker_container:
+        name: prometheus
+        image: prom/prometheus:latest
+        state: started
+        restart_policy: unless-stopped
+        ports:
+          - "9090:9090"
+        volumes:
+          - /tmp/prometheus.yml:/etc/prometheus/prometheus.yml  # Mount the file into the container
+
+    - name: Restart Prometheus container
+      command: docker compose restart prometheus
+      args:
+        chdir: "/home/deployer/node-app"
+      become: true
+
+
+    - name: Wait for Prometheus container to restart
+      pause:
+        seconds: 5
