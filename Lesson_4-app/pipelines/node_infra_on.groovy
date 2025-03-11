@@ -71,10 +71,10 @@ pipeline {
         }
         stage('Run Ansible ') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY_PATH_CONTAINER')]) {
                     sh '''
                 cd ./Lesson_4-app/ansible/
-                ansible-playbook -i hosts install_node_app.yml -u ubuntu --private-key="$SSH_KEY" -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
+                ansible-playbook -i hosts install_node_app.yml -u ubuntu --private-key="$SSH_KEY_PATH_CONTAINER" -e 'ansible_ssh_common_args="-o StrictHostKeyChecking=no"'
                 '''
                 }
             }
