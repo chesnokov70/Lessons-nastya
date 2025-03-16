@@ -6,7 +6,6 @@ pipeline {
   }
   environment {
     REGISTRY = "chesnokov70/node-app"
-    BUILD_ID = "${env.BUILD_ID}"
   }
   stages {
     stage ('Clone repo') {
@@ -14,12 +13,22 @@ pipeline {
         checkout([$class: 'GitSCM', branches: [[name: "${revision}"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'ssh_github_access_key', url: "$git_url"]]])
       }
     }
-
-    stage('Deploy') {
+    stage ('Build and push') {
       steps {
-          script {
-            sh 'docker compose -f docker-compose.yaml up -d'
-          }
+        script {
+          def Image = docker.build("${env.REGISTRY}:${env.BUILD_ID}")
+          docker.withRegistry('https://registry-1.docker.io', 'hub_token') {
+              Image.push()
+        }
+        }
+      }
+    }
+    stage ('Deploy') {
+      steps {
+        script {
+          sh 'docker compose down || true'    // Stop any existing containers (avoid conflicts)
+          sh 'docker compose up -d --build'  // Ensure it builds the latest image
+        }
       }
     }
   }

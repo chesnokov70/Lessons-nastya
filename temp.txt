@@ -23,5 +23,13 @@ pipeline {
         }
       }
     }
+    stage ('Deploy') {
+      steps {
+        script {
+          sh 'docker compose down || true'    // Stop any existing containers (avoid conflicts)
+          sh 'docker compose up -d --build'  // Ensure it builds the latest image
+        }
+      }
+    }
   }
 }
