@@ -62,4 +62,20 @@ pipeline {
         }
       }
   }
+
+  post {
+      always {
+          cleanWs() // Clean workspace after each build
+      }
+
+      success {
+          echo 'Deployment was successful!'
+      }
+
+      failure {
+          echo 'There was a problem with the deployment.'
+      }
+  }
+
+}
 }
