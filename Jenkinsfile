@@ -6,6 +6,7 @@ pipeline {
   }
   environment {
     REGISTRY = "chesnokov70/node-app"
+    BUILD_ID = "${env.BUILD_ID}"
   }
   stages {
     stage ('Clone repo') {
