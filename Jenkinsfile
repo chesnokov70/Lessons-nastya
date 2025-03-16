@@ -7,7 +7,7 @@ pipeline {
   environment {
     REGISTRY = "chesnokov70/node-app"
     EC2_INSTANCE = '3.91.19.9'
-    SSH_KEY = credentials('your-ssh-key')
+    SSH_KEY = credentials('ssh_instance_key')
   }
   stages {
     stage ('Clone repo') {
