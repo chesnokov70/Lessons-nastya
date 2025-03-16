@@ -7,27 +7,6 @@ pipeline {
         ansiColor('xterm')
     }
     stages {
-        stage('Clone Git repo Lesson_4-app') {
-            steps {
-                checkout([
-                    $class: 'GitSCM', 
-                    branches: [[name: 'main']], 
-                    doGenerateSubmoduleConfigurations: false, 
-                    extensions: [
-                        [
-                            $class: 'SparseCheckoutPaths',
-                            sparseCheckoutPaths: [[path: 'Lesson_4-app']]
-                        ]
-                    ], 
-                    userRemoteConfigs: [
-                        [
-                            url: 'git@github.com:chesnokov70/Lessons-nastya.git',
-                            credentialsId: 'ssh_github_access_key' // please use your jenkins access to git
-                        ]
-                    ]
-                ])
-            }
-        }
         stage ('Terraform init') {
             steps {
                 sh '''
