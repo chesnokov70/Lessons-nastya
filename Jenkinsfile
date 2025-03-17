@@ -47,7 +47,6 @@ if ! command -v docker-compose &> /dev/null; then
     sudo chmod +x /usr/local/bin/docker-compose
 fi
 
-docker-compose up -d
 EOF
                     """
                 }
