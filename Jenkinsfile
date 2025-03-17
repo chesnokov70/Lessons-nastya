@@ -17,7 +17,7 @@ pipeline {
     }
     stage('Deploy to EC2') {
         steps {
-            withCredentials([sshUserPrivateKey(credentialsId: 'ssh_ec2_key', keyFileVariable: 'SSH_KEY')]) {
+            withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
                 sh """
                 ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@${EC2_HOST} << EOF
                     cd /home/ubuntu
