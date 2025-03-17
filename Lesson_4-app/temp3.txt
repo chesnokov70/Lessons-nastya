@@ -6,7 +6,7 @@ pipeline {
   }
   environment {
     REGISTRY = "chesnokov70/node-app"
-    EC2_HOST = '3.228.218.199'
+    EC2_INSTANCE = '3.228.218.199'
     SSH_KEY = credentials('ssh_instance_key')
   }
   stages {
@@ -15,24 +15,6 @@ pipeline {
         checkout([$class: 'GitSCM', branches: [[name: "${revision}"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'ssh_github_access_key', url: "$git_url"]]])
       }
     }
-    stage('Deploy to EC2') {
-        steps {
-            withCredentials([sshUserPrivateKey(credentialsId: 'ssh_ec2_key', keyFileVariable: 'SSH_KEY')]) {
-                sh """
-                ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@${EC2_HOST} << EOF
-                    cd /home/ubuntu
-                    if [ ! -d "node-app" ]; then
-                        git clone $git_url
-                    else
-                        cd node-app
-                        git pull origin main
-                    fi
-                    docker-compose up -d
-                EOF
-                """
-            }
-        }
-    }    
   }    
     //stage ('Build and push') {
     //  steps {
