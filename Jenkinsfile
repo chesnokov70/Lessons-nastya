@@ -19,14 +19,16 @@ pipeline {
         steps {
             withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
                 sh """
-                ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@${EC2_HOST} << EOF
-                    cd /home/ubuntu
+                ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@3.228.218.199 << EOF
+                    ssh-keyscan github.com >> ~/.ssh/known_hosts
                     if [ ! -d "node-app" ]; then
-                        git clone $git_url
+                        git clone git@github.com:chesnokov70/node-app.git
                     else
                         cd node-app
                         git pull origin main
                     fi
+                    sudo apt update
+                    sudo apt install docker-compose-plugin -y
                     docker-compose up -d
                 EOF
                 """
