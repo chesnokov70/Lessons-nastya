@@ -25,7 +25,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
                     sh """
-                    ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@3.228.218.199 << 'EOF'
+                    ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@$EC2_HOST << 'EOF'
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 
 if [ ! -d "node-app" ]; then
