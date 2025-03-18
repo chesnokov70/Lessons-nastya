@@ -1,0 +1,72 @@
+def git_url = "git@github.com:chesnokov70/node-app.git"
+pipeline {
+    agent any
+
+    environment {
+        REPO = "chesnokov70/node-app"
+        DOCKER_IMAGE = 'chesnokov70/node-app'
+        DOCKER_TAG = '1.0'
+        HOST = "3.238.15.68"
+        SVC = "zansulu"
+        PORT = "3000"
+    }
+
+    stages {
+        stage('Configure credentials') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh_github_access_key', keyFileVariable: 'private_key', usernameVariable: 'username')]) {
+                    script {
+                        def remote = [
+                            name: "${env.HOST}",
+                            host: "${env.HOST}",
+                            user: "$username",
+                            identity: readFile("$private_key"),
+                            allowAnyHosts: true
+                        ]
+                        echo "Remote host configured: ${remote.host}"
+                    }
+                }
+            }
+        }
+
+        stage('Clone Repository') {
+            steps {
+                git (url: 'https://github.com/chesnokov70/node-app', 
+                branch: 'main',
+                credentialsId: 'ssh_github_access_key')
+            }
+        }
+    }
+}
+
+pipeline {
+    agent any
+
+    environment {
+        GIT_REPO = "git@github.com:chesnokov70/node-app.git"
+        BRANCH = "main"
+        HOST = "3.238.15.68"
+        REMOTE_USER = "ubuntu"
+        DEST_PATH = "/home/ubuntu/node-app"
+    }
+
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git branch: env.BRANCH, 
+                    url: env.GIT_REPO,
+                    credentialsId: 'ssh_github_access_key'
+            }
+        }
+
+        stage('Copy Code to EC2') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh_ec2_key', keyFileVariable: 'EC2_KEY')]) {
+                    sh '''
+                    rsync -avz -e "ssh -o StrictHostKeyChecking=no -i $EC2_KEY" ./ $REMOTE_USER@$HOST:$DEST_PATH
+                    '''
+                }
+            }
+        }
+    }
+}

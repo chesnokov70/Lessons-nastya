@@ -1,11 +1,11 @@
-def git_url = "git@github.com:chesnokov70/node-app.git"
+def remote = [:]
 pipeline {
     agent any
 
     environment {
-        REPO = "chesnokov70/node-app"
-        DOCKER_IMAGE = 'chesnokov70/node-app'
-        DOCKER_TAG = '1.0'
+        REPO = "chesnokov/node-app"
+        DOCKER_IMAGE = 'node-app'
+        DOCKER_TAG = 'latest'
         HOST = "3.238.15.68"
         SVC = "zansulu"
         PORT = "3000"
@@ -16,14 +16,11 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh_github_access_key', keyFileVariable: 'private_key', usernameVariable: 'username')]) {
                     script {
-                        def remote = [
-                            name: "${env.HOST}",
-                            host: "${env.HOST}",
-                            user: "$username",
-                            identity: readFile("$private_key"),
-                            allowAnyHosts: true
-                        ]
-                        echo "Remote host configured: ${remote.host}"
+                        remote.name = "${env.HOST}"
+                        remote.host = "${env.HOST}"
+                        remote.user = "$username"
+                        remote.identity = readFile("$private_key")
+                        remote.allowAnyHosts = true
                     }
                 }
             }
@@ -31,9 +28,7 @@ pipeline {
 
         stage('Clone Repository') {
             steps {
-                git (url: 'https://github.com/chesnokov70/node-app', 
-                branch: 'main',
-                credentialsId: 'ssh_github_access_key')
+                git (url: 'https://github.com/chesnokov70/node-app', branch: 'main')
             }
         }
     }
