@@ -6,9 +6,8 @@ pipeline {
   }
   environment {
     REGISTRY = "chesnokov70/node-app"
-    EC2_INSTANCE = '3.228.218.199'
     SSH_KEY = credentials('ssh_instance_key')
-    TERRAFORM_DIR = 'terraform/ec2-instance'    
+    TERRAFORM_DIR = './terraform'    
   }
   stages {
     stage ('Clone repo') {
