@@ -16,11 +16,14 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh_github_access_key', keyFileVariable: 'private_key', usernameVariable: 'username')]) {
                     script {
-                        remote.name = "${env.HOST}"
-                        remote.host = "${env.HOST}"
-                        remote.user = "$username"
-                        remote.identity = readFile("$private_key")
-                        remote.allowAnyHosts = true
+                        def remote = [
+                            name: "${env.HOST}",
+                            host: "${env.HOST}",
+                            user: "$username",
+                            identity: readFile("$private_key"),
+                            allowAnyHosts: true
+                        ]
+                        echo "Remote host configured: ${remote.host}"
                     }
                 }
             }
