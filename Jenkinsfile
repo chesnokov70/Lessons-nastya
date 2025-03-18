@@ -22,7 +22,7 @@ pipeline {
           sh """
           export PATH=$PATH:/usr/local/bin
           cd ${TERRAFORM_DIR}
-          terraform init
+          terraform init -reconfigure
           terraform apply -auto-approve
           """
 
