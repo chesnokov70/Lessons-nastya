@@ -31,7 +31,9 @@ pipeline {
 
         stage('Clone Repository') {
             steps {
-                git (url: 'https://github.com/chesnokov70/node-app', branch: 'main')
+                git (url: 'https://github.com/chesnokov70/node-app', 
+                branch: 'main',
+                credentialsId: 'ssh_github_access_key')
             }
         }
     }
