@@ -6,7 +6,7 @@ pipeline {
     }
     environment {
         REGISTRY = "chesnokov70/node-app"
-        EC2_HOST = '3.228.218.199'
+        EC2_HOST = '3.238.15.68'
         SSH_KEY = credentials('ssh_instance_key')
     }
     stages {
