@@ -20,6 +20,7 @@ pipeline {
       steps {
         script {
           sh """
+          export PATH=$PATH:/usr/local/bin
           cd ${TERRAFORM_DIR}
           terraform init
           terraform apply -auto-approve
