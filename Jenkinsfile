@@ -26,14 +26,14 @@ pipeline {
     //  }
     //}
 
-    stage('Deploy to EC2') {
-      steps {
-        script {
+  //  stage('Deploy to EC2') {
+  //    steps {
+  //      script {
             // SSH into EC2 instance and deploy the app using Docker Compose
               
-        }
-      }
-    }
+  //      }
+  //    }
+  //  }
   }
 //  post {
 //      always {
