@@ -41,16 +41,22 @@ pipeline {
           script {
             sh """
             ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${env.EC2_INSTANCE} << EOF
-            sudo apt update && sudo apt install -y docker docker-compose
-            docker --version
-            docker-compose --version
+            sudo apt update
+            sudo apt install -y docker.io
+            sudo systemctl start docker
+            sudo systemctl enable docker
+            sudo usermod -aG docker ubuntu  # Avoid sudo for Docker commands
+        
+
+            sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-\$(uname -s)-\$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
 
             if [ ! -d "node-app" ]; then
               git clone ${git_url} || (cd node-app && git pull)
             fi
 
             cd node-app
-            docker-compose up -d
+            docker compose up -d
             EOF
             """
           }
