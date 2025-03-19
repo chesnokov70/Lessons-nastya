@@ -43,6 +43,7 @@ pipeline {
             ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${env.EC2_INSTANCE} << EOF
             sudo apt update
             sudo apt install -y docker.io
+            sudo apt-get install docker-compose-plugin
             sudo systemctl start docker
             sudo systemctl enable docker
             sudo usermod -aG docker ubuntu  # Avoid sudo for Docker commands
