@@ -27,8 +27,8 @@ pipeline {
           """
 
           // Extract the instance IP dynamically
-          def ec2_ip = sh(script: "terraform output -raw ec2_public_ip", returnStdout: true).trim()
-          echo "EC2 IP is: ${ec2_ip}"
+          def ec2_ip = sh(script: "terraform output -no-color -raw ec2_public_ip | tr -d '\033'", returnStdout: true).trim()
+          echo "EC2 IP is: '${ec2_ip}'"
           env.EC2_INSTANCE = ec2_ip
         }
       }
@@ -39,12 +39,15 @@ pipeline {
         withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
           script {
             sh """
-            ssh -o StrictHostKeyChecking=no -i ${env.SSH_KEY} ubuntu@${env.EC2_INSTANCE} << EOF
+            ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${env.EC2_INSTANCE} << EOF
             sudo apt update && sudo apt install -y docker docker-compose
             docker --version
             docker-compose --version
 
-            git clone ${git_url} || (cd node-app && git pull)
+            if [ ! -d "node-app" ]; then
+              git clone ${git_url} || (cd node-app && git pull)
+            fi
+              
             cd node-app
             docker-compose up -d
             EOF
