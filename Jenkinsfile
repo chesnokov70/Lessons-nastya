@@ -45,8 +45,9 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
                     script {
+                        def dynamicIp = "${env.EC2_INSTANCE}"
                         sh """
-                        ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${env.EC2_INSTANCE} << EOF
+                        ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${dynamicIp} << EOF
                         sudo apt update
                         sudo apt install -y docker.io
                         sudo apt-get install docker-compose-plugin
