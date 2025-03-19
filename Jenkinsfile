@@ -1,3 +1,4 @@
+def remote = [:]
 def git_url = "git@github.com:chesnokov70/node-app.git"
 
 pipeline {
