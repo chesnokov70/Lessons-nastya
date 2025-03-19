@@ -8,6 +8,7 @@ pipeline {
     REGISTRY = "chesnokov70/node-app"
     SSH_KEY = credentials('ssh_instance_key')
     TERRAFORM_DIR = 'terraform'    
+    env.EC2_INSTANCE = 'ec2_ip'
   }
   stages {
     stage ('Clone repo') {
@@ -47,7 +48,7 @@ pipeline {
             if [ ! -d "node-app" ]; then
               git clone ${git_url} || (cd node-app && git pull)
             fi
-              
+
             cd node-app
             docker-compose up -d
             EOF
