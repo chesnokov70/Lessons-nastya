@@ -9,6 +9,7 @@ pipeline {
         REGISTRY = "chesnokov70/node-app"
         SSH_KEY = credentials('ssh_instance_key')
         TERRAFORM_DIR = 'terraform'
+        EC2_HOST = '3.83.4.117'
     }
     stages {
         stage('Clone repo') {
@@ -43,5 +44,22 @@ pipeline {
                 }
             }
         }
+
+        stage('Clone Repo to EC2') {
+            steps {
+                script {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@3.83.4.117 << 'EOF'
+                    sudo apt update
+                    sudo apt install -y git
+                    git clone ${git_url}
+                    cd node-app
+                    git checkout ${revision}
+                    EOF
+                    """
+                }
+            }
+        }
+
     }
 }
