@@ -1,57 +1,45 @@
 def git_url = "git@github.com:chesnokov70/node-app.git"
-pipeline {
-  agent any
-  parameters {
-    gitParameter (name: 'revision', type: 'PT_BRANCH')
-  }
-  environment {
-    REGISTRY = "chesnokov70/node-app"
-    EC2_HOST = '3.83.4.117'
-    SSH_KEY = credentials('ssh_instance_key')
-  }
-  stages {
-    stage ('Clone repo') {
-      steps {
-        checkout([$class: 'GitSCM', branches: [[name: "${revision}"]], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'ssh_github_access_key', url: "$git_url"]]])
-      }
-    }
-    stage('Deploy to EC2') {
-        steps {
-            withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
-                sh """
-                ssh -o StrictHostKeyChecking=no -i $SSH_KEY ubuntu@$EC2_HOST << 'EOF'
-            ssh-keyscan github.com >> ~/.ssh/known_hosts
-            if [ ! -d "node-app" ]; then
-                git clone git@github.com:chesnokov70/node-app.git
-            else
-                cd node-app
-                git pull origin main
-            fi
-            sudo apt update
-            sudo apt install -y docker.io
-        
-            if ! command -v docker-compose &> /dev/null; then
-                sudo curl -SL https://github.com/docker/compose/releases/download/v2.23.3/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-                sudo chmod +x /usr/local/bin/docker-compose
-            fi
 
-            docker-compose up -d
-            EOF
-                """
+pipeline {
+    agent any
+    parameters {
+        gitParameter(name: 'revision', type: 'PT_BRANCH')
+    }
+    environment {
+        REGISTRY = "chesnokov70/node-app"
+        SSH_KEY = credentials('ssh_instance_key')
+        TERRAFORM_DIR = 'terraform'
+    }
+    stages {
+        stage('Clone repo') {
+            steps {
+                checkout([$class: 'GitSCM',
+                    branches: [[name: "${revision}"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [],
+                    submoduleCfg: [],
+                    userRemoteConfigs: [[credentialsId: 'ssh_github_access_key', url: "$git_url"]]
+                ])
             }
         }
-    }    
-  }    
-    //stage ('Build and push') {
-    //  steps {
-    //    script {
-    //      def Image = docker.build("${env.REGISTRY}:${env.BUILD_ID}")
-    //      docker.withRegistry('https://registry-1.docker.io', 'hub_token') {
-    //          Image.push()
-    //    }
-    //    }
-    //  }
-    //}
 
+        stage('Provision EC2 Instance') {
+            steps {
+                script {
+                    sh """
+                    export PATH=$PATH:/usr/local/bin
+                    cd ${TERRAFORM_DIR}
+                    terraform init -reconfigure
+                    terraform apply -auto-approve
+                    """
 
+                    // Extract the instance IP dynamically
+                    def ec2_ip = sh(script: 'terraform output -no-color -raw ec2_public_ip', returnStdout: true).trim()
+                    echo "EC2 IP is: '${ec2_ip}'"
+                    env.EC2_INSTANCE = ec2_ip
+
+                }
+            }
+        }
+    }
 }
