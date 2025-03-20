@@ -35,13 +35,13 @@ pipeline {
 
                     def ec2_ip = sh(script: """
                          terraform output -no-color -raw ec2_public_ip | xargs
+                         echo "EC2 IP is: ${ec2_ip}"
                     """, returnStdout: true).trim()
 
                     if (!ec2_ip || !ec2_ip.matches('\\d+\\.\\d+\\.\\d+\\.\\d+')) {
                         error("Failed to retrieve valid EC2 IP. Check Terraform state or instance creation.")
                     }
 
-                    echo "EC2 IP is: ${ec2_ip}"
                     env.EC2_INSTANCE = ec2_ip
                 }
             }
