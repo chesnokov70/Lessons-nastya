@@ -57,9 +57,9 @@ pipeline {
                         set -x
                         sudo apt update
                         sudo apt install -y git
-                        GIT_SSH_COMMAND="ssh -i \${SSH_KEY_GIT}" git clone ${GIT_URL}
+                        GIT_SSH_COMMAND="ssh -i \${SSH_KEY_GIT}" git clone ${git_url}
                         cd node-app
-                        git checkout ${REVISION}
+                        git checkout ${revision}
                         EOF
                         """
                     }
