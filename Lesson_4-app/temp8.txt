@@ -41,5 +41,38 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy Node.js App with Docker Compose') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ssh_instance_key', keyFileVariable: 'SSH_KEY')]) {
+                    script {
+                        def dynamicIp = "${env.EC2_INSTANCE}"
+                        sh """
+                        ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${dynamicIp} << EOF
+                        sudo apt update
+                        sudo apt install -y docker.io
+                        sudo apt-get install docker-compose-plugin
+                        sudo systemctl start docker
+                        sudo systemctl enable docker
+                        sudo usermod -aG docker ubuntu  # Avoid sudo for Docker commands
+
+                        # Adjust permissions to ensure executable scripts
+                        chmod +x node-app/*
+
+                        if [ ! -d "node-app" ]; then
+                            git clone ${git_url}
+                        else
+                            cd node-app
+                            git pull
+                        fi
+
+                        cd node-app
+                        docker compose up -d
+                        EOF
+                        """
+                    }
+                }
+            }
+        }
     }
 }
