@@ -41,7 +41,7 @@ pipeline {
                     if (!ec2_ip) {
                         error("Failed to retrieve EC2 IP. Check Terraform state or instance creation.")
                     }
-
+                    echo "EC2 IP is: ${ec2_ip}"
                     env.EC2_INSTANCE = ec2_ip
 
 
