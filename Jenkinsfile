@@ -45,6 +45,8 @@ pipeline {
             }
         }
 
+
+
         stage('Clone Repo to EC2') {
             steps {
                 script {
@@ -53,7 +55,7 @@ pipeline {
                         ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@3.83.4.117 << 'EOF'
                         sudo apt update
                         sudo apt install -y git
-                        GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa" git clone ${GIT_URL}
+                        GIT_SSH_COMMAND="ssh -i \${SSH_KEY}" git clone ${GIT_URL}
                         cd node-app
                         git checkout ${REVISION}
                         EOF
