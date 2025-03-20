@@ -34,9 +34,10 @@ pipeline {
                     """
 
                     // Extract the instance IP dynamically
-                    def ec2_ip = sh(script: "terraform output -no-color -raw ec2_public_ip | tr -d '\033'", returnStdout: true).trim()
+                    def ec2_ip = sh(script: 'terraform output -no-color -raw ec2_public_ip', returnStdout: true).trim()
                     echo "EC2 IP is: '${ec2_ip}'"
                     env.EC2_INSTANCE = ec2_ip
+
                 }
             }
         }
