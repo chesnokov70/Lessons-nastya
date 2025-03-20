@@ -1,4 +1,3 @@
-def remote = [:]
 def git_url = "git@github.com:chesnokov70/node-app.git"
 
 pipeline {
@@ -38,6 +37,22 @@ pipeline {
                     def ec2_ip = sh(script: "terraform output -no-color -raw ec2_public_ip | tr -d '\033'", returnStdout: true).trim()
                     echo "EC2 IP is: '${ec2_ip}'"
                     env.EC2_INSTANCE = ec2_ip
+                }
+            }
+        }
+
+        stage('Clone Repo to EC2') {
+            steps {
+                script {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${env.EC2_INSTANCE} << EOF
+                    sudo apt update
+                    sudo apt install -y git
+                    git clone ${git_url}
+                    cd node-app
+                    git checkout ${revision}
+                    EOF
+                    """
                 }
             }
         }
