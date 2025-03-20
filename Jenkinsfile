@@ -8,6 +8,7 @@ pipeline {
     environment {
         REGISTRY = "chesnokov70/node-app"
         SSH_KEY = credentials('ssh_instance_key')
+        SSH_KEY_GIT = credentials('ssh_github_access_key')
         TERRAFORM_DIR = 'terraform'
         EC2_HOST = '3.83.4.117'
     }
@@ -56,7 +57,7 @@ pipeline {
                         set -x
                         sudo apt update
                         sudo apt install -y git
-                        GIT_SSH_COMMAND="ssh -i \${SSH_KEY}" git clone ${GIT_URL}
+                        GIT_SSH_COMMAND="ssh -i \${SSH_KEY_GIT}" git clone ${GIT_URL}
                         cd node-app
                         git checkout ${REVISION}
                         EOF
