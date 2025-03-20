@@ -46,7 +46,7 @@ pipeline {
             steps {
                 script {
                     sh """
-                    ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@${env.EC2_INSTANCE} << 'EOF'
+                    ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@3.83.4.117 << 'EOF'
                     sudo apt update
                     sudo apt install -y git
                     if [ ! -d "node-app" ]; then
