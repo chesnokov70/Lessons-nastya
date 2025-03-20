@@ -45,14 +45,15 @@ pipeline {
             }
         }
 
-
+        
 
         stage('Clone Repo to EC2') {
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'ssh_github_access_key', keyFileVariable: 'SSH_KEY')]) {
                         sh """
-                        ssh -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@3.83.4.117 << 'EOF'
+                        ssh -v -o StrictHostKeyChecking=no -i "\${SSH_KEY}" ubuntu@3.83.4.117 << 'EOF'
+                        set -x
                         sudo apt update
                         sudo apt install -y git
                         GIT_SSH_COMMAND="ssh -i \${SSH_KEY}" git clone ${GIT_URL}
