@@ -34,7 +34,7 @@ pipeline {
                     """
 
                     def ec2_ip = sh(script: """
-                        terraform output -no-color -raw ec2_public_ip | tr -d '"' | tr -d '\033'
+                         terraform output -no-color -raw ec2_public_ip | xargs
                     """, returnStdout: true).trim()
 
                     if (!ec2_ip || !ec2_ip.matches('\\d+\\.\\d+\\.\\d+\\.\\d+')) {
