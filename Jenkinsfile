@@ -34,9 +34,17 @@ pipeline {
                     """
 
                     // Extract the instance IP dynamically
-                    def ec2_ip = sh(script: "terraform output -no-color -raw ec2_public_ip | tr -d '\033'", returnStdout: true).trim()
-                    echo "EC2 IP is: '${ec2_ip}'"
+                    def ec2_ip = sh(script: """
+                        terraform output -no-color -raw ec2_public_ip | tr -d '"' | tr -d '\033'
+                    """, returnStdout: true).trim()
+
+                    if (!ec2_ip) {
+                        error("Failed to retrieve EC2 IP. Check Terraform state or instance creation.")
+                    }
+
                     env.EC2_INSTANCE = ec2_ip
+
+
                 }
             }
         }
