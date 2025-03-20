@@ -7,7 +7,7 @@ pipeline {
     }
     environment {
         REGISTRY = "chesnokov70/node-app"
-        SSH_KEY = credentials('ssh_instance_key')
+        SSH_KEY = credentials('ssh_instance_key.pem')
         TERRAFORM_DIR = 'terraform'
         EC2_HOST = '3.83.4.117'
     }
