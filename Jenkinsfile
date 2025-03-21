@@ -19,16 +19,22 @@ pipeline {
     stage ('Build and push') {
       steps {
         script {
-         // def Image = docker.build("${env.REGISTRY}:${env.BUILD_ID}")
-          // docker.withRegistry('https://registry-1.docker.io', '$TOKEN') {
-          //    Image.push()
          sh """ 
          docker login -u chesnokov70 -p $TOKEN
          docker build -t "${env.REGISTRY}:${env.BUILD_ID}" .
          docker push "${env.REGISTRY}:${env.BUILD_ID}"
          """
-          
-      //  }
+        }
+      }
+    }
+    stage ('Deploy node-app') {
+      steps {
+        script {
+         sh """ 
+         export APP_IMG="${env.REGISTRY}:${env.BUILD_ID}"
+         envsubst < docker-compose.tmpl | tee docker-compose.yaml
+         docker compose up -d
+         """
         }
       }
     }
