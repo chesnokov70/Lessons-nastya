@@ -22,9 +22,9 @@ pipeline {
          // def Image = docker.build("${env.REGISTRY}:${env.BUILD_ID}")
           // docker.withRegistry('https://registry-1.docker.io', '$TOKEN') {
           //    Image.push()
-         docker login -u chesnokov70 -p $TOKEN
+         sh """ docker login -u chesnokov70 -p $TOKEN """
           
-        }
+      //  }
         }
       }
     }
