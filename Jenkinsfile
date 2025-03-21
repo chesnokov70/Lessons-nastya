@@ -8,6 +8,7 @@ pipeline {
     REGISTRY = "chesnokov70/node-app"
     EC2_INSTANCE = '3.228.218.199'
     SSH_KEY = credentials('ssh_instance_key')
+    TOKEN = credentials('hub_token')
   }
   stages {
     stage ('Clone repo') {
@@ -19,7 +20,7 @@ pipeline {
       steps {
         script {
           def Image = docker.build("${env.REGISTRY}:${env.BUILD_ID}")
-          docker.withRegistry('https://registry-1.docker.io', 'hub_token') {
+          docker.withRegistry('https://registry-1.docker.io', '$TOKEN') {
               Image.push()
         }
         }
