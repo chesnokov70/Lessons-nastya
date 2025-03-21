@@ -19,8 +19,8 @@ pipeline {
     stage ('Build and push') {
       steps {
         script {
-          def Image = docker.build("${env.REGISTRY}:${env.BUILD_ID}")
-          docker.withRegistry('https://registry-1.docker.io', '$TOKEN') {
+         // def Image = docker.build("${env.REGISTRY}:${env.BUILD_ID}")
+          // docker.withRegistry('https://registry-1.docker.io', '$TOKEN') {
               Image.push()
         }
         }
