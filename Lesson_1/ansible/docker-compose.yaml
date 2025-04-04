@@ -1,14 +1,52 @@
 version: '3.8'
 
 services:
+
+  app:
+    image: node:16
+    container_name: node-app
+    working_dir: /app
+    volumes:
+      - /home/deployer/node-app:/app
+    command: >
+      sh -c "npm install && node server.js"
+    ports:
+      - "3000:3000"
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf"
+
+  node-exporter:
+    image: prom/node-exporter
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    restart: unless-stopped  
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/sys:/sys:ro"
+      - "/var/lib/docker:/var/lib/docker:ro"
+    restart: unless-stopped  
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
-    restart: always
+    restart: unless-stopped
     networks:
       - monitoring
 
@@ -16,7 +54,7 @@ services:
     image: grafana/grafana:main-ubuntu
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     restart: always
     networks:
       - monitoring
@@ -54,3 +92,5 @@ networks:
 volumes:
   grafana-data:
     driver: local
+  prometheus-data:
+    driver: local    

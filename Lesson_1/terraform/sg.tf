@@ -1,6 +1,7 @@
-resource "aws_security_group" "allow_web" {
-  description = "web SG for monitoring docker"
-  vpc_id      = data.aws_vpc.default.id
+resource "aws_security_group" "node_sg" {
+  name        = "node_app_sg"
+  description = "Allow SSH, HTTP, and monitoring traffic"  
+
   dynamic "ingress" {
     for_each = var.allow_ports
     content {

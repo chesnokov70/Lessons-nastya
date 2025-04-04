@@ -19,7 +19,7 @@ variable "instance_type" {
 variable "allow_ports" {
   description = "List of Ports to open for server"
   type        = list
-  default     = ["80", "443", "22", "587", "3000", "3100", "8080", "9093", "9090"]
+  default     = ["22", "80", "443", "587", "3000", "3001", "3100", "8080", "9093", "9090", "9100"]
 }
 
 variable "enable_detailed_monitoring" {
