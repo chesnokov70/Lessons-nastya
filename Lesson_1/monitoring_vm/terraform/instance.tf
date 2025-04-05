@@ -10,7 +10,7 @@ resource "aws_instance" "node_docker" {
     volume_type = "gp3"
   }
   tags = {
-    Name = "NodeAppServer"
+    Name = "Monitoring-Server"
   }
 }
 
