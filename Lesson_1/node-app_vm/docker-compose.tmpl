@@ -3,10 +3,19 @@ version: '3.8'
 services:
   node-app:
     image: ${APP_IMG}
+    networks:
+      - monitoring
     container_name: node-app
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   nginx:
     image: chesnokov70/node-app:nginx
+    networks:
+      - monitoring    
     container_name: nginx
     ports:
       - "80:80"
@@ -14,36 +23,19 @@ services:
       - node-app
     restart: always
 
-#------------------------------------------
-
-  app:
-    image: node:16
-    container_name: node-app
-    working_dir: /app
-    volumes:
-      - /home/deployer/node-app:/app
-    command: >
-      sh -c "npm install && node server.js"
-    ports:
-      - "3000:3000"
-
-  nginx:
-    image: nginx:latest
-    container_name: nginx-proxy
-    ports:
-      - "80:80"
-    volumes:
-      - "./nginx.conf:/etc/nginx/nginx.conf"
-
   node-exporter:
     image: prom/node-exporter
+    networks:
+      - monitoring    
     container_name: node-exporter
     ports:
       - "9100:9100"
-    restart: unless-stopped  
+    restart: always  
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor
+    networks: 
+      - monitoring    
     container_name: cadvisor
     ports:
       - "8080:8080"
@@ -51,4 +43,18 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "/sys:/sys:ro"
       - "/var/lib/docker:/var/lib/docker:ro"
-    restart: unless-stopped  
+    restart: always  
+
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    command: -config.file=/etc/promtail/config.yaml
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yaml:ro 
+    networks:
+      - monitoring  # Specify the network, not as a volume
+    restart: always
+
+networks:
+  monitoring:
+    driver: bridge

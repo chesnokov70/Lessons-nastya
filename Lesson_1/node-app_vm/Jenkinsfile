@@ -6,8 +6,9 @@ pipeline {
     gitParameter (name: 'revision', type: 'PT_BRANCH')
   }
   environment {
+    EC2_USER = "ubuntu"
     REGISTRY = "chesnokov70/node-app"
-    HOST = '35.170.60.97'
+    HOST = '98.80.188.245'
     SSH_KEY = credentials('ssh_instance_key')
     TOKEN = credentials('hub_token')
   }
@@ -38,18 +39,23 @@ pipeline {
          docker login -u chesnokov70 -p $TOKEN
          docker build -t "${env.REGISTRY}:${env.BUILD_ID}" .
          docker push "${env.REGISTRY}:${env.BUILD_ID}"
+         mkdir -p /var/lib/jenkins/.ssh
+         ssh-keyscan -H ${HOST} >> /var/lib/jenkins/.ssh/known_hosts
+         chmod 600 /var/lib/jenkins/.ssh/known_hosts        
          scp /var/lib/jenkins/workspace/My_Lessons_Folder/node-app/docker-compose.tmpl root@${HOST}:/opt
+         scp /var/lib/jenkins/workspace/My_Lessons_Folder/node-app/promtail-config.yaml root@${HOST}:/opt
          """
         }
       }
     }
+    
     stage ('Deploy node-app') {
       steps {
         script {
           sshCommand remote: remote, command: """
           export APP_IMG="${env.REGISTRY}:${env.BUILD_ID}"
           cd /opt
-          envsubst < docker-compose.tmpl | sudo tee docker-compose.yaml
+          envsubst < docker-compose.tmpl | sudo tee docker-compose.yaml         
           docker compose up -d
           """
         }
