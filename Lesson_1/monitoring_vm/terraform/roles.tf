@@ -32,7 +32,8 @@ resource "aws_iam_role_policy" "monitoring_role_devops_course" {
     Statement = [
       {
         Action = [
-          "ec2:*"
+          "ec2:*",
+          "ec2:DescribeInstances"
         ],
         Effect   = "Allow",
         Resource = "*"
