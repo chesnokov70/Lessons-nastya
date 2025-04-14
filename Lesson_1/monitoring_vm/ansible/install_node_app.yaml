@@ -5,7 +5,6 @@
   vars:
     ansible_user: ubuntu
     docker_projects_dir: /home/deployer/monitoring
-    prometheus_config: "{{ docker_projects_dir }}/prometheus.yaml"
     docker_compose_file: "{{ docker_projects_dir }}/docker-compose.yaml"  
  
   tasks:
@@ -86,6 +85,14 @@
         recurse: yes    
       become: true  
 
+    - name: Ensure /home/deployer/monitoring/loki-data exists
+      file:
+        path: "/home/deployer/monitoring/loki-data"
+        state: directory
+        owner: deployer
+        group: deployer
+        mode: '0755'
+
     - name: Restart Docker service
       systemd:
         name: docker
@@ -98,11 +105,21 @@
         state: directory
         mode: "0755"
         
-
-    - name: Copy over Docker compose file
+    - name: Copy over Docker Compose files
       copy:
         src: files/
-        dest: /opt/
+        dest: "{{ docker_projects_dir }}/"
+        owner: deployer
+        group: deployer
+        mode: '0755'
+
+    - name: Allow deployer passwordless sudo
+      copy:
+        dest: /etc/sudoers.d/deployer
+        content: "deployer ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: '0440'
 
     - name: Add user to the docker group
       user:
@@ -115,16 +132,8 @@
 
     - name: Start Monitoring using Docker Compose
       command: "docker compose -f {{ docker_compose_file }} up -d"
-      
+      become: true
 
-    - name: Fix file ownership
-      file:
-        path: "/home/deployer/monitoring/{{ item }}"
-        owner: deployer
-        group: deployer
-        mode: "0644"
-      loop:
-        - prometheus.yaml
 
   handlers:
     - name: Reload systemd daemon to pick up new Docker service configuration
