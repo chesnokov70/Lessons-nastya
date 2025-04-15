@@ -31,3 +31,15 @@
 # terraform fmt
 # terraform validate
 # terraform apply -auto-approve
+  loki:
+    image: grafana/loki:latest                         # Uses the latest Loki image
+    container_name: loki                               # Named container
+    command: -config.file=/etc/loki/loki-config.yaml   # Loki will use your custom config
+    ports:
+      - "3100:3100"                                    # Exposes Loki’s HTTP API on host port 3100
+    restart: always                                    # Auto-restarts if container crashes
+    networks:
+      - monitoring                                     # Shared Docker network (great for Promtail & Grafana)
+    volumes:
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml  # Mounts your Loki config file
+      - loki-data:/loki                                # Persists data volume for logs
