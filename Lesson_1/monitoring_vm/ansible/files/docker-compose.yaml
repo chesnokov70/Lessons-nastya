@@ -5,14 +5,15 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
-    command: -config.file=/etc/prometheus/prometheus.yaml
-    volumes:
-      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
     ports:
       - "9090:9090"
+    volumes:
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"      
     restart: unless-stopped
     networks:
-      - monitoring
+      - monitoring  
 
   grafana:
     image: grafana/grafana:main-ubuntu
@@ -30,7 +31,8 @@ services:
   loki:
     image: grafana/loki:2.9.4
     container_name: loki
-    command: -config.file=/etc/loki/loki-config.yaml
+    command:
+      - "--config.file=/etc/loki/loki-config.yaml"
     ports:
       - "3100:3100"
     restart: always
@@ -38,7 +40,6 @@ services:
       - monitoring
     volumes:
       - ./loki-config.yaml:/etc/loki/loki-config.yaml
-      - loki-data:/loki
 
   alertmanager:
     image: prom/alertmanager:latest

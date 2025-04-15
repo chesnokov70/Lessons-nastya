@@ -14,7 +14,7 @@ scrape_configs:
       - targets: ['monitoring.ches-it.com:9090']
   - job_name: "prod-servers"
     ec2_sd_configs:
-      - port: "9100"
+      - port: 9100
         filters:
           - name: "tsg:Environment"
             values: ["prod"]
