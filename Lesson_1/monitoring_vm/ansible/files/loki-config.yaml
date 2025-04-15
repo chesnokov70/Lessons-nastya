@@ -53,4 +53,4 @@ ruler:
     local:
       directory: /loki/rules
   rule_path: /loki/rules-temp
-  alertmanager_url: http://localhost:9093
+  alertmanager_url: http://monitoring.ches-it.com:9093
